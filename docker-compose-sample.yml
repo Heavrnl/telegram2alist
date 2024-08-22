@@ -9,7 +9,7 @@ services:
       API_HASH: "API_HASH"  # 替换为你的实际API Hash
       PHONE_NUMBER: "PHONE_NUMBER"  # 替换为你的电话号码
       BASE_URL: "BASE_URL"  # 替换为你的实际Base URL
-      CHAT_ID_TO_MONITOR: "CHAT_ID_TO_MONITOR"  # 替换为你要监控的Chat ID
+      CHAT_IDS_TO_MONITOR: "CHAT_ID_TO_MONITOR"  # 替换为你要监控的Chat ID，可以监控多个chat，用,分割
       USERNAME: "USERNAME"  # 替换为你的用户名
       PASSWORD: "PASSWORD" # 注意特殊字符要转义
       SERVER_PATH: "/local" # alist服务器目录
