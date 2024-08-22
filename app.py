@@ -15,16 +15,14 @@ API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 PHONE_NUMBER = os.getenv('PHONE_NUMBER')
 BASE_URL = os.getenv('BASE_URL')
-CHAT_ID_TO_MONITOR = os.getenv('CHAT_ID_TO_MONITOR')
+CHAT_IDS_TO_MONITOR = os.getenv('CHAT_IDS_TO_MONITOR')  # 现在是多个 chat_id，用逗号分隔
 USERNAME = os.getenv('USERNAME')
 PASSWORD = os.getenv('PASSWORD')
-
 SERVER_PATH = os.getenv('SERVER_PATH')
 
-
 def get_token(username, password):
-    logger.info(f"username:{username}")	
-    logger.info(f"password:{password}")	
+    logger.info(f"username:{username}")    
+    logger.info(f"password:{password}")    
     logger.debug(f"正在尝试获取用户 {username} 的令牌")
     login_url = f"{BASE_URL}/auth/login"
     payload = {
@@ -64,59 +62,15 @@ def upload_file_to_url(token, server_directory, as_task, local_file_path):
     logger.debug(f"上传响应状态码: {response.status_code}")
     return response.json()
 
-
-# async def download_file_chunk(session, url, start, end, chunk_num, temp_dir):
-#     headers = {'Range': f'bytes={start}-{end}'}
-#     chunk_path = os.path.join(temp_dir, f'chunk_{chunk_num}')
-#
-#     async with session.get(url, headers=headers) as response:
-#         if response.status == 206:  # Partial Content
-#             with open(chunk_path, 'wb') as f:
-#                 while True:
-#                     chunk = await response.content.read(1024)
-#                     if not chunk:
-#                         break
-#                     f.write(chunk)
-#         else:
-#             raise Exception(f"Failed to download chunk {chunk_num}: {response.status}")
-#     return chunk_path
-#
-#
-# async def download_media(url, dest_file_path, num_chunks=8):
-#     async with aiohttp.ClientSession() as session:
-#         async with session.head(url) as response:
-#             total_size = int(response.headers['Content-Length'])
-#
-#         chunk_size = total_size // num_chunks
-#         ranges = [(i * chunk_size, (i + 1) * chunk_size - 1) for i in range(num_chunks)]
-#         ranges[-1] = (ranges[-1][0], total_size - 1)  # Adjust the last chunk range
-#
-#         temp_dir = './temp_chunks'
-#         os.makedirs(temp_dir, exist_ok=True)
-#
-#         tasks = [download_file_chunk(session, url, start, end, i, temp_dir) for i, (start, end) in enumerate(ranges)]
-#         chunk_paths = await asyncio.gather(*tasks)
-#
-#         with open(dest_file_path, 'wb') as dest_file:
-#             for chunk_path in chunk_paths:
-#                 with open(chunk_path, 'rb') as chunk_file:
-#                     dest_file.write(chunk_file.read())
-#                 os.remove(chunk_path)
-#
-#         os.rmdir(temp_dir)
-#
-#     return dest_file_path
-
 async def handle_file(event):
     logger.info(f"在聊天 {event.chat_id} 中收到消息")
 
-    if str(event.chat_id) != CHAT_ID_TO_MONITOR:
+    if str(event.chat_id) not in CHAT_IDS_TO_MONITOR:
         logger.warning(f"在非监控的聊天中收到消息: {event.chat_id}")
         return
 
     if event.message.media:
         try:
-
             if isinstance(event.message.media, telethon.tl.types.MessageMediaWebPage):
                 logger.info("收到的是一个网页/URL，不处理为媒体文件")
                 return
@@ -141,7 +95,7 @@ async def handle_file(event):
 
             logger.debug(f"文件已下载到: {local_file_path}")
             logger.info("正在尝试获取令牌")
- 
+
             token = get_token(USERNAME, PASSWORD)
             logger.info("正在尝试上传文件")
             result = upload_file_to_url(token, SERVER_PATH, False, local_file_path)
@@ -157,19 +111,21 @@ async def handle_file(event):
     else:
         logger.info("收到的消息不包含媒体文件")
 
-
-
 async def main():
     logger.info("正在启动客户端")
     logger.info(f"Retrieved password: {PASSWORD}")
+    
     client = TelegramClient('session', API_ID, API_HASH)
     await client.start(phone=PHONE_NUMBER)
 
-    @client.on(events.NewMessage(chats=int(CHAT_ID_TO_MONITOR)))
+    # 解析多个 chat_id
+    chat_ids = [int(chat_id.strip()) for chat_id in CHAT_IDS_TO_MONITOR.split(',')]
+    
+    @client.on(events.NewMessage(chats=chat_ids))
     async def handler(event):
         await handle_file(event)
 
-    logger.info("客户端现在开始监听消息")
+    logger.info(f"客户端现在开始监听 {chat_ids} 中的消息")
     await client.run_until_disconnected()
 
 if __name__ == '__main__':
