@@ -146,7 +146,7 @@ async def handle_file(event):
             logger.info("正在尝试上传文件")
             result = upload_file_to_url(token, SERVER_PATH, False, local_file_path)
             logger.info("文件上传完成")
-            await event.reply(f"文件上传成功: {result}")
+            await event.reply(f"文件上传成功")
         except Exception as e:
             logger.error(f"文件处理过程中出错: {str(e)}")
             await event.reply(f"处理文件时出错: {str(e)}")
