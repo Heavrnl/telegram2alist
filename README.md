@@ -1,5 +1,5 @@
-### 本项目主要用于搭配[XiaoMengXinX/Music163bot-Go](https://github.com/XiaoMengXinX/Music163bot-Go)使用
-本质上就是tg to alist
+### 本项目初衷是用于搭配[XiaoMengXinX/Music163bot-Go](https://github.com/XiaoMengXinX/Music163bot-Go)使用
+也可当作监听chat里的所有媒体文件，只要捕获到了就会自动上传到指定的alist目录，本质上就是tg to alist
 
 ### 初次运行
 
