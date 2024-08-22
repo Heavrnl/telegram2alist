@@ -3,6 +3,8 @@
 
 ### 初次运行
 
+在docker-compose.yml填入参数
+
 ```shell
 docker-compose build
 docker-compose up --no-start
