@@ -4,7 +4,7 @@ import logging
 import aiohttp
 import telethon
 from telethon import TelegramClient, events
-
+from FastTelethonhelper import fast_download
 import os
 
 # 设置日志
@@ -21,8 +21,6 @@ PASSWORD = os.getenv('PASSWORD')
 SERVER_PATH = os.getenv('SERVER_PATH')
 
 def get_token(username, password):
-    logger.info(f"username:{username}")    
-    logger.info(f"password:{password}")    
     logger.debug(f"正在尝试获取用户 {username} 的令牌")
     login_url = f"{BASE_URL}/auth/login"
     payload = {
@@ -38,6 +36,7 @@ def get_token(username, password):
     else:
         logger.error(f"获取令牌失败: {response.text}")
         raise Exception(f"获取令牌失败: {response.text}")
+
 
 def upload_file_to_url(token, server_directory, as_task, local_file_path):
     logger.debug(f"正在尝试上传文件: {local_file_path}")
@@ -62,7 +61,8 @@ def upload_file_to_url(token, server_directory, as_task, local_file_path):
     logger.debug(f"上传响应状态码: {response.status_code}")
     return response.json()
 
-async def handle_file(event):
+
+async def handle_file(event,client):
     logger.info(f"在聊天 {event.chat_id} 中收到消息")
 
     if str(event.chat_id) not in CHAT_IDS_TO_MONITOR:
@@ -87,7 +87,8 @@ async def handle_file(event):
             logger.info("正在下载文件")
             if not os.path.exists("./tmp/"):
                 os.makedirs("./tmp/")
-            local_file_path = await event.message.download_media(file="./tmp/")
+            # local_file_path = await event.message.download_media(file="./tmp/")
+            local_file_path = await fast_download(client,event.message,download_folder="./tmp/")
             if not local_file_path:
                 logger.error("文件下载失败")
                 await event.reply("文件下载失败")
@@ -111,23 +112,28 @@ async def handle_file(event):
     else:
         logger.info("收到的消息不包含媒体文件")
 
+
 async def main():
     logger.info("正在启动客户端")
-    logger.info(f"Retrieved password: {PASSWORD}")
-    
+
     client = TelegramClient('session', API_ID, API_HASH)
     await client.start(phone=PHONE_NUMBER)
 
     # 解析多个 chat_id
     chat_ids = [int(chat_id.strip()) for chat_id in CHAT_IDS_TO_MONITOR.split(',')]
-    
+
     @client.on(events.NewMessage(chats=chat_ids))
     async def handler(event):
-        await handle_file(event)
+        await handle_file(event,client)
 
     logger.info(f"客户端现在开始监听 {chat_ids} 中的消息")
     await client.run_until_disconnected()
 
+
+if __name__ == '__main__':
+    import asyncio
+
+    asyncio.run(main())
 if __name__ == '__main__':
     import asyncio
     asyncio.run(main())
