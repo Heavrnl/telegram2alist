@@ -13,8 +13,10 @@ services:
       USERNAME: "USERNAME"  # 替换为你的用户名
       PASSWORD: "PASSWORD" # 注意特殊字符要转义
       SERVER_PATH: "/local" # alist服务器目录
+      ADMIN_USER_ID:: "" # 管理员ID
     stdin_open: true  # once you've logged in, can be commented out 登入后可以注释掉
     tty: true         # ditto 同上
     volumes:
       - .:/app  # 将主机当前目录映射到容器的工作目录
+      - /root/docker/alist/local:/root/docker/alist/local  # 将主机的 alist local 目录映射到容器内
     restart: unless-stopped
