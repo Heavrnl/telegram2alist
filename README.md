@@ -8,7 +8,6 @@
 ```shell
 docker-compose build
 docker-compose up --no-start
-docker start tg2alist
 docker start -ia tg2alist  # 这时你将需要按指引登入账号，一切完成后 Ctrl-P Ctrl-Q 解离
 ```
 
@@ -25,5 +24,7 @@ vi docker-compose.yaml  # 注释掉标明的两行
 ```shell
 docker-compose up -d
 ```
+
+/setpath 目录 可以指定文件上传到alist的目录
 
 然后往你监听的chat发送文件，本项目就会把文件通过alist api传入到你指定的目录
